@@ -1,0 +1,113 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath group: 'com.github.rodionmoiseev.gradle.plugins', name: 'idea-utils', version: '0.2'
+    }
+}
+
+plugins {
+    id "com.github.johnrengelman.shadow" version "1.2.3"
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'idea-utils'
+
+idea {
+    project {
+        ipr {
+            withXml { xmlProvider ->
+                def project = xmlProvider.asNode()
+                def runConfigs = new XmlParser().parse(new File("config/intellij_runconfigs.xml"))
+                project.append(runConfigs)
+            }
+        }
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = 'sponge'
+        url = 'http://repo.spongepowered.org/maven'
+    }
+}
+
+group = project.property("group")
+version = project.property("version")
+sourceCompatibility = "1.8"
+
+dependencies {
+    compile group: 'org.spongepowered', name: 'spongeapi', version: project.property("apiversion")
+
+    // dependencies go here
+    // Example:
+    // compile group: 'com.google.guava', name: 'guava', version: '19.0'
+}
+
+processResources {
+    filter ReplaceTokens, tokens: [
+            "apiversion": project.property("apiversion"),
+            "version"   : project.property("version")
+    ]
+}
+
+clean {
+    delete "final/"
+    delete project.property("serverdir")
+}
+
+compileJava.dependsOn {
+    buildSpigot
+}
+
+jar {
+    actions = []
+    dependsOn = []
+    dependsOn('shadowJar')
+}
+
+shadowJar {
+    dependencies {
+        exclude(dependency('org.spongepowered:spongeapi:.*'))
+    }
+}
+
+task deploy(type: Copy, dependsOn: ['build']) {
+    from "${buildDir}/libs"
+    into "final/"
+}
+
+task setupDevServer(dependsOn: 'extractServerJar', type: Copy) {
+    from 'config/serverfiles'
+    into project.property("serverdir")
+}
+
+task extractServerJar(type: Copy) {
+    from {
+        configurations.runtime
+    }
+    include("spigot-" + project.property("apiversion") + ".jar")
+    rename("spigot-" + project.property("apiversion") + ".jar", "server.jar")
+    into "testserver/"
+}
+
+task copyPluginToTestserver(dependsOn: ['build'], type: Copy) {
+    from "${buildDir}/libs"
+    into "testserver/plugins"
+}
+
+task prepareDevServer(dependsOn: ['buildSpigot', 'setupDevServer', 'copyPluginToTestserver']) {}
+
+task startDevServer(dependsOn: [prepareDevServer], type: JavaExec) {
+    classpath configurations.compile, configurations.runtime
+    main = "org.spongepowered.api.util.InformativeMain"
+    workingDir = project.property("serverdir")
+    standardInput = System.in
+}
