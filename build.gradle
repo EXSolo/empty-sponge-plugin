@@ -60,11 +60,7 @@ processResources {
 
 clean {
     delete "final/"
-    delete project.property("serverdir")
-}
-
-compileJava.dependsOn {
-    buildSpigot
+    delete "sponge/"
 }
 
 jar {
@@ -86,7 +82,7 @@ task deploy(type: Copy, dependsOn: ['build']) {
 
 task setupDevServer(dependsOn: 'extractServerJar', type: Copy) {
     from 'config/serverfiles'
-    into project.property("serverdir")
+    into "sponge/"
 }
 
 task extractServerJar(type: Copy) {
@@ -95,19 +91,19 @@ task extractServerJar(type: Copy) {
     }
     include("spigot-" + project.property("apiversion") + ".jar")
     rename("spigot-" + project.property("apiversion") + ".jar", "server.jar")
-    into "testserver/"
+    into "sponge/"
 }
 
 task copyPluginToTestserver(dependsOn: ['build'], type: Copy) {
     from "${buildDir}/libs"
-    into "testserver/plugins"
+    into "sponge/mods"
 }
 
-task prepareDevServer(dependsOn: ['buildSpigot', 'setupDevServer', 'copyPluginToTestserver']) {}
+task prepareDevServer(dependsOn: ['setupDevServer', 'copyPluginToTestserver']) {}
 
 task startDevServer(dependsOn: [prepareDevServer], type: JavaExec) {
     classpath configurations.compile, configurations.runtime
     main = "org.spongepowered.api.util.InformativeMain"
-    workingDir = project.property("serverdir")
+    workingDir = "sponge/"
     standardInput = System.in
 }

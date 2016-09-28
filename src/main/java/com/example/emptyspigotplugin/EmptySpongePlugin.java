@@ -6,7 +6,7 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.plugin.Plugin;
 
-@Plugin(id="empty-sponge-plugin", name = "An empty sponge plugin", version = "1.0.0")
+@Plugin(id="empty-sponge-plugin", name = "EmptySpongePlugin", version = "1.0.0", description = "An empty sponge plugin")
 public class EmptySpongePlugin {
 
     @Inject

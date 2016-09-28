@@ -20,8 +20,8 @@
     <configuration default="false" name="Start Dev Server" type="JarApplication" factoryName="JAR Application"
                    singleton="true">
         <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea"/>
-        <option name="JAR_PATH" value="$PROJECT_DIR$/testserver/server.jar"/>
-        <option name="WORKING_DIRECTORY" value="testserver/"/>
+        <option name="JAR_PATH" value="$PROJECT_DIR$/sponge/server.jar"/>
+        <option name="WORKING_DIRECTORY" value="sponge/"/>
         <option name="ALTERNATIVE_JRE_PATH"/>
         <envs/>
         <method>
